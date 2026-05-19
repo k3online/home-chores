@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Users</h1>
+    <p>Create kid accounts and additional admin accounts.</p>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Create user</h2>
+  <form method="post" action="/admin/users" class="grid-form">
+    <label>
+      Username
+      <input name="username" autocomplete="off" required>
+    </label>
+    <label>
+      Display name
+      <input name="display_name" required>
+    </label>
+    <label>
+      Role
+      <select name="role">
+        <option value="kid">Kid</option>
+        <option value="admin">Admin</option>
+      </select>
+    </label>
+    <label>
+      Password
+      <input type="password" name="password" autocomplete="new-password" required>
+    </label>
+    <button type="submit">Create user</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Existing users</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Display name</th>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Active</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+          <tr>
+            <td>{{ user.display_name }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td>{{ "yes" if user.is_active else "no" }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="empty">No users yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

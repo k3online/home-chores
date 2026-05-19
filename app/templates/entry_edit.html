@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Edit Entry{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Edit entry</h1>
+    <p>Entry #{{ entry.id }}</p>
+  </div>
+</section>
+
+<section class="panel">
+  <form method="post" action="/admin/entries/{{ entry.id }}/edit" class="grid-form">
+    <label>
+      Kid
+      <select name="child_user_id" required>
+        {% for kid in kids %}
+          <option value="{{ kid.id }}" {% if kid.id == entry.child_user_id %}selected{% endif %}>{{ kid.display_name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Date
+      <input type="date" name="entry_date" value="{{ entry.entry_date }}" required>
+    </label>
+    <label>
+      Type
+      <select name="entry_type">
+        <option value="deposit" {% if entry.entry_type == "deposit" %}selected{% endif %}>Deposit</option>
+        <option value="withdrawal" {% if entry.entry_type == "withdrawal" %}selected{% endif %}>Withdrawal</option>
+      </select>
+    </label>
+    <label>
+      Amount
+      <input name="amount" value="{{ (entry.amount_cents | abs / 100) }}" inputmode="decimal" required>
+    </label>
+    <label>
+      Status
+      <select name="approval_state">
+        <option value="pending" {% if entry.approval_state == "pending" %}selected{% endif %}>Pending</option>
+        <option value="approved" {% if entry.approval_state == "approved" %}selected{% endif %}>Approved</option>
+        <option value="rejected" {% if entry.approval_state == "rejected" %}selected{% endif %}>Rejected</option>
+      </select>
+    </label>
+    <label>
+      SPY close
+      <input name="spy_close" value="{{ (entry.spy_close_cents / 100) if entry.spy_close_cents else "" }}" inputmode="decimal">
+    </label>
+    <label class="wide">
+      Chore / reason
+      <input name="chore" value="{{ entry.chore or "" }}">
+    </label>
+    <label class="wide">
+      Notes
+      <textarea name="notes" rows="2">{{ entry.notes or "" }}</textarea>
+    </label>
+    <label class="wide">
+      Admin notes
+      <textarea name="admin_notes" rows="2">{{ entry.admin_notes or "" }}</textarea>
+    </label>
+    <button type="submit">Save changes</button>
+    <a class="button secondary" href="/admin">Cancel</a>
+  </form>
+</section>
+{% endblock %}

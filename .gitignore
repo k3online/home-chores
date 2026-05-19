@@ -1,0 +1,46 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Runtime data
+data/*
+!data/.gitkeep
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+
+# Backups and exports
+backups/*
+!backups/.gitkeep
+exports/
+
+# Local agent/editor/system files
+.agents/
+.codex/
+.DS_Store
+.idea/
+.vscode/
+
+# Local planning and handoff notes
+
+.dev/

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}My Ledger{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>{{ current_user.display_name }}</h1>
+    <p>Today's value: <strong>{{ balance.current_cents|money }}</strong></p>
+  </div>
+  <div class="metric-row">
+    <div class="metric">
+      <span>Total SPY shares</span>
+      <strong>{{ balance.share_balance|shares }}</strong>
+      <small>Cost basis: {{ balance.principal_cents|money }}</small>
+    </div>
+    <div class="metric">
+      <span>Latest SPY close</span>
+      <strong>{{ balance.latest_spy_cents|money if balance.latest_spy_cents else "Not set" }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>New chore request</h2>
+  <form method="post" action="/kid/entries" class="grid-form">
+    <label>
+      Date
+      <input type="date" name="entry_date" required>
+    </label>
+    <label>
+      Amount
+      <input name="amount" inputmode="decimal" placeholder="10.00" required>
+    </label>
+    <label class="wide">
+      Chore
+      <input name="chore" placeholder="Mowed lawn" required>
+    </label>
+    <label class="wide">
+      Notes
+      <textarea name="notes" rows="2"></textarea>
+    </label>
+    <button type="submit">Submit request</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>My entries</h2>
+  <div class="table-wrap">
+    <table data-sortable-table>
+      <thead>
+        <tr>
+          <th data-sortable>Date</th>
+          <th data-sortable>Chore</th>
+          <th data-sortable>Amount</th>
+          <th data-sortable>Status</th>
+          <th data-sortable>SPY close</th>
+          <th data-sortable>Shares</th>
+          <th data-sortable>Share balance</th>
+          <th data-sortable>Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in entry_rows %}
+          {% set entry = row.entry %}
+          <tr>
+            <td data-sort="{{ entry.entry_date }}">{{ entry.entry_date }}</td>
+            <td>{{ entry.chore or "" }}</td>
+            <td data-sort="{{ entry.amount_cents }}">{{ entry.amount_cents|money }}</td>
+            <td><span class="status {{ entry.approval_state }}">{{ entry.approval_state }}</span></td>
+            <td data-sort="{{ entry.spy_close_cents or "" }}">{{ entry.spy_close_cents|money if entry.spy_close_cents else "" }}</td>
+            <td data-sort="{{ row.share_delta if row.share_delta is not none else "" }}">{{ row.share_delta|shares if row.share_delta is not none else "" }}</td>
+            <td data-sort="{{ row.share_balance if entry.approval_state == 'approved' else '' }}">{{ row.share_balance|shares if entry.approval_state == "approved" else "" }}</td>
+            <td data-sort="{{ row.running_current_cents if entry.approval_state == 'approved' else '' }}">{{ row.running_current_cents|money if entry.approval_state == "approved" else "" }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="8" class="empty">No entries yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

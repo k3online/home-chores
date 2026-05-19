@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Admin dashboard</h1>
+    <p>Latest SPY close: <strong>{{ latest_spy|money if latest_spy else "Not set" }}</strong></p>
+  </div>
+  <form method="post" action="/admin/backup">
+    <button type="submit" class="secondary">Create backup</button>
+  </form>
+</section>
+
+<section class="balance-grid">
+  {% for kid, balance in balances %}
+    <article class="metric">
+      <span>{{ kid.display_name }}</span>
+      <strong>{{ balance.current_cents|money }}</strong>
+      <small>Total SPY shares: {{ balance.share_balance|shares }}</small>
+      <small>Cost basis: {{ balance.principal_cents|money }}</small>
+    </article>
+  {% else %}
+    <p class="empty">Create a kid user to start tracking chores.</p>
+  {% endfor %}
+</section>
+
+<section class="panel">
+  <h2>Import chores from CSV</h2>
+  <form method="post" action="/admin/import" enctype="multipart/form-data" class="grid-form">
+    <label>
+      Kid
+      <select name="child_user_id" required>
+        {% for kid in kids %}
+          <option value="{{ kid.id }}">{{ kid.display_name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="wide">
+      CSV file
+      <input type="file" name="csv_file" accept=".csv,text/csv" required>
+    </label>
+    <p class="form-note wide">Required columns: date, type, chore, amount. Type can be deposit or withdrawal. Imported rows are created as pending ledger entries. <a href="/admin/import/template.csv">Download template</a>.</p>
+    <button type="submit">Upload CSV</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Add admin entry</h2>
+  <form method="post" action="/admin/entries" class="grid-form">
+    <label>
+      Kid
+      <select name="child_user_id" required>
+        {% for kid in kids %}
+          <option value="{{ kid.id }}">{{ kid.display_name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Date
+      <input type="date" name="entry_date" required>
+    </label>
+    <label>
+      Type
+      <select name="entry_type">
+        <option value="deposit">Deposit</option>
+        <option value="withdrawal">Withdrawal</option>
+      </select>
+    </label>
+    <label>
+      Amount
+      <input name="amount" inputmode="decimal" required>
+    </label>
+    <label>
+      Status
+      <select name="approval_state">
+        <option value="approved">Approved</option>
+        <option value="pending">Pending</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </label>
+    <label>
+      SPY close
+      <input name="spy_close" inputmode="decimal" placeholder="optional">
+    </label>
+    <label class="wide">
+      Chore / reason
+      <input name="chore">
+    </label>
+    <label class="wide">
+      Admin notes
+      <textarea name="admin_notes" rows="2"></textarea>
+    </label>
+    <button type="submit">Add entry</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Entries</h2>
+  <div class="table-wrap">
+    <table data-sortable-table>
+      <thead>
+        <tr>
+          <th data-sortable>Date</th>
+          <th data-sortable>Kid</th>
+          <th data-sortable>Type</th>
+          <th data-sortable>Chore</th>
+          <th data-sortable>Amount</th>
+          <th data-sortable>Status</th>
+          <th data-sortable>SPY close</th>
+          <th data-sortable>Shares</th>
+          <th data-sortable>Share balance</th>
+          <th data-sortable>Balance</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in entry_rows %}
+          {% set entry = row.entry %}
+          <tr>
+            <td data-sort="{{ entry.entry_date }}">{{ entry.entry_date }}</td>
+            <td>{{ entry.child.display_name }}</td>
+            <td>{{ entry.entry_type }}</td>
+            <td>{{ entry.chore or "" }}</td>
+            <td data-sort="{{ entry.amount_cents }}">{{ entry.amount_cents|money }}</td>
+            <td><span class="status {{ entry.approval_state }}">{{ entry.approval_state }}</span></td>
+            <td data-sort="{{ entry.spy_close_cents or "" }}">{{ entry.spy_close_cents|money if entry.spy_close_cents else "" }}</td>
+            <td data-sort="{{ row.share_delta if row.share_delta is not none else "" }}">{{ row.share_delta|shares if row.share_delta is not none else "" }}</td>
+            <td data-sort="{{ row.share_balance if entry.approval_state == 'approved' else '' }}">{{ row.share_balance|shares if entry.approval_state == "approved" else "" }}</td>
+            <td data-sort="{{ row.running_current_cents if entry.approval_state == 'approved' else '' }}">{{ row.running_current_cents|money if entry.approval_state == "approved" else "" }}</td>
+            <td class="actions">
+              {% if entry.approval_state == "pending" %}
+                <form method="post" action="/admin/entries/{{ entry.id }}/approve" class="inline-form">
+                  <input name="spy_close" inputmode="decimal" placeholder="SPY close">
+                  <button type="submit">Approve</button>
+                </form>
+                <form method="post" action="/admin/entries/{{ entry.id }}/reject">
+                  <button type="submit" class="secondary">Reject</button>
+                </form>
+              {% endif %}
+              <a class="button secondary" href="/admin/entries/{{ entry.id }}/edit">Edit</a>
+              <form method="post" action="/admin/entries/{{ entry.id }}/delete">
+                <button type="submit" class="danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="11" class="empty">No entries yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

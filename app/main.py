@@ -181,6 +181,7 @@ def kid_dashboard(request: Request, db: Session = Depends(get_db)):
 def kid_create_entry(
     request: Request,
     entry_date: str = Form(...),
+    entry_type: str = Form("deposit"),
     chore: str = Form(...),
     amount: str = Form(...),
     notes: str = Form(""),
@@ -194,6 +195,10 @@ def kid_create_entry(
         amount_cents = parse_money_to_cents(amount)
         if amount_cents <= 0:
             raise ValueError("Amount must be greater than zero.")
+        if entry_type == "withdrawal":
+            amount_cents = -amount_cents
+        elif entry_type != "deposit":
+            raise ValueError("Invalid entry type.")
     except ValueError as exc:
         flash(request, str(exc), "error")
         return redirect("/kid")
@@ -201,7 +206,7 @@ def kid_create_entry(
     entry = Entry(
         child_user_id=user.id,
         entry_date=entry_date,
-        entry_type="deposit",
+        entry_type=entry_type,
         chore=chore.strip(),
         amount_cents=amount_cents,
         approval_state="pending",

@@ -62,7 +62,7 @@ nav form {
 
 main {
   margin: 0 auto;
-  max-width: 1180px;
+  max-width: 1400px;
   padding: 24px;
 }
 
@@ -319,10 +319,14 @@ th[aria-sort="descending"] .sort-button::after {
 
 .actions {
   align-items: flex-start;
+  background: var(--panel);
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   min-width: 190px;
+  position: sticky;
+  right: 0;
+  z-index: 1;
 }
 
 .actions form {
